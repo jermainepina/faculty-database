@@ -5,6 +5,28 @@
 #define FILENAME "employees.csv"
 
 // Add employee to file 
+int checkID(char* filename, int id) {
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("Error: Unable to open file!\n");
+        return -1;
+    }
+
+    // TODO: get employee based on id (print)
+    char line[100];
+    int currid;
+    int idFound = 0;
+
+    while (fgets(line, sizeof(line), file) != NULL) {
+        sscanf(line, "%d", &currid);
+        if (currid == id) {
+            idFound = 1;
+        }
+    }
+
+    return idFound;
+    fclose(file);
+}
 void addEmployee(char* filename, int id, char *firstname, char *lastname, int age, char *position) {
     FILE *file = fopen(filename, "a");
     if (file == NULL) {
@@ -12,7 +34,7 @@ void addEmployee(char* filename, int id, char *firstname, char *lastname, int ag
     }
 
     fprintf(file, "%d,%s,%s,%d,%s\n", id, firstname, lastname, age, position);
-
+    printf("\nEmployee added to database\n");
     fclose(file);
 }
 
@@ -54,7 +76,7 @@ void removeEmployee(char* filename, int id) {
 
         remove(filename);
         rename("temp.csv", filename);
-        printf("Removed successfully\n");
+        printf("\nEmployee with ID %d removed successfully\n", id);
     }
 }
 
@@ -78,7 +100,26 @@ void searchID(char* filename, int id) {
             char position[20];
             int age;
             sscanf(line, "%*d,%14[^,],%14[^,],%d,%19[^,\n]", firstname, lastname, &age, position);
-            printf("ID: %d\nName: %s %s\nAge: %d\nPosition: %s\n", id, firstname, lastname, age, position);
+
+            // Combine first and last name
+            int length = strlen(firstname) + strlen(lastname) + 2;
+            char name[length];
+            strcpy(name, firstname);
+            strcat(name, " ");
+            strcat(name, lastname);
+
+            // Expand teaching assistant and athletic staff abbreviations
+            if (strcmp(position, "ta") == 0) 
+                strcpy(position, "teaching assistant");
+            else if (strcmp(position, "athletic") == 0)
+            strcpy(position, "athletic staff");
+            
+            printf("+-----+----------------------+-----+--------------------+\n");
+            printf("| %-3s | %-20s | %-2s | %-18s |\n", "ID", "Name", "Age", "Position");
+            printf("+-----+----------------------+-----+--------------------+\n");
+            printf("| %-3d | %-20s | %-3d | %-18s |\n", id, name, age, position);
+            printf("+-----+----------------------+-----+--------------------+\n");
+
             idFound = 1;
             break;
         }
@@ -110,7 +151,26 @@ void searchName(char* filename, char *firstname, char *lastname) {
         sscanf(line, "%d,%14[^,],%14[^,],%d,%19[^,\n]", &id, currfirst, currlast, &age, position);
         if (strcmp(currfirst, firstname) == 0)
             if (strcmp(currlast, lastname) == 0) {
-                printf("NOTE: Two or more employees may share the same name. Consider searching by ID to avoid incorrect employee.\nID: %d\nName: %s %s\nAge: %d\nPosition: %s\n", id, firstname, lastname, age, position);
+                // Combine first and last name
+                int length = strlen(firstname) + strlen(lastname) + 2;
+                char name[length];
+                strcpy(name, firstname);
+                strcat(name, " ");
+                strcat(name, lastname);
+
+                // Expand teaching assistant and athletic staff abbreviations
+                if (strcmp(position, "ta") == 0) 
+                    strcpy(position, "teaching assistant");
+                else if (strcmp(position, "athletic") == 0)
+                    strcpy(position, "athletic staff");
+
+                printf("+-----+----------------------+-----+--------------------+\n");
+                printf("| %-3s | %-20s | %-2s | %-18s |\n", "ID", "Name", "Age", "Position");
+                printf("+-----+----------------------+-----+--------------------+\n");
+                printf("| %-3d | %-20s | %-3d | %-18s |\n", id, name, age, position);
+                printf("+-----+----------------------+-----+--------------------+\n");
+                printf("\nNOTE: Two or more employees may share the same name. Consider searching by ID to avoid incorrect employee.\n");
+
                 nameFound = 1;
                 break;
             }    
@@ -141,8 +201,19 @@ void getPosition(char* filename, char *key) {
         int age, id;
         sscanf(line, "%d,%14[^,],%14[^,],%d,%19[^,\n]", &id, firstname, lastname, &age, position);
         if (strcmp(key, position) == 0) {
-            strcat(firstname, " ");
-            char *name = strcat(firstname, lastname);
+            // Combine first and last name
+            int length = strlen(firstname) + strlen(lastname) + 2;
+            char name[length];
+            strcpy(name, firstname);
+            strcat(name, " ");
+            strcat(name, lastname);
+
+            // Expand teaching assistant and athletic staff abbreviations
+            if (strcmp(position, "ta") == 0) 
+                strcpy(position, "teaching assistant");
+            else if (strcmp(position, "athletic") == 0)
+                strcpy(position, "athletic staff");
+
             printf("+-----+----------------------+-----+--------------------+\n");
             printf("| %-3d | %-20s | %-3d | %-18s |\n", id, name, age, position);
         }
@@ -160,8 +231,11 @@ void getRegistry(char* filename) {
     }
 
     // TODO: get list of employees (print)
+    printf("+-------------------------------------------------------+\n");
+    printf("| Employee registry:                                    |\n");
     printf("+-----+----------------------+-----+--------------------+\n");
     printf("| %-3s | %-20s | %-2s | %-18s |\n", "ID", "Name", "Age", "Position");
+
     char line[100];
     while (fgets(line, sizeof(line), file) != NULL) {
         char firstname[15];
@@ -169,8 +243,19 @@ void getRegistry(char* filename) {
         char position[20];
         int age, id;
         sscanf(line, "%d,%14[^,],%14[^,],%d,%19[^,\n]", &id, firstname, lastname, &age, position);
-        strcat(firstname, " ");
-        char *name = strcat(firstname, lastname);
+        // Combine first and last name
+        int length = strlen(firstname) + strlen(lastname) + 2;
+        char name[length];
+        strcpy(name, firstname);
+        strcat(name, " ");
+        strcat(name, lastname);
+
+        // Expand teaching assistant and athletic staff abbreviations
+        if (strcmp(position, "ta") == 0) 
+            strcpy(position, "teaching assistant");
+        else if (strcmp(position, "athletic") == 0)
+            strcpy(position, "athletic staff");
+
         printf("+-----+----------------------+-----+--------------------+\n");
         printf("| %-3d | %-20s | %-3d | %-18s |\n", id, name, age, position);
     }
@@ -181,13 +266,94 @@ void getRegistry(char* filename) {
 
 int main() {
     // Example usage
-    addEmployee(FILENAME, 1, "Johnnnn", "Doe", 38, "Teacher");
-    addEmployee(FILENAME, 2, "Bob", "Smith", 35, "Counselor");
-    addEmployee(FILENAME, 3, "Jane", "Doe", 24, "Teacher");
-    addEmployee(FILENAME, 4, "George", "Bush", 70, "Principal");
-    addEmployee(FILENAME, 5, "Tom", "Brady", 46, "Janitor");
-    searchName(FILENAME, "Bob", "Smith");
+    int choice;
+    int id;
+    int age;
+    char firstname[15];
+    char lastname[15];
+    char *position;
+    while (1) {
+        printf("\nFaculty Database\n");
+        printf("Available commands:\n");
+        printf("1. Add employee to database\n");
+        printf("2. Get employee information\n");
+        printf("3. Get registry\n");
+        printf("4. Get list of employees by position\n");
+        printf("5. Remove employee\n");
+        printf("6. Exit\n\n");
+        scanf("%d", &choice);
 
+        switch(choice) {
+            case 1: {
+                // Add employee to database
+                while (1) {
+                    printf("Enter ID: ");
+                    scanf("%d", &id);
+                    
+                    if (!checkID(FILENAME, id)) {
+                        break;
+                    } else printf("ERROR: ID taken\n");
+                }
+                printf("Enter name (first and last separated by a whitespace): ");
+                scanf("%s %s", firstname, lastname);
+                printf("Enter age: ");
+                scanf("%d", &age);
+                printf("List of available positions:\n* teacher\n* teaching assistant (input 'ta')\n* athletic staff (input 'athletic')\n* nurse\n* janitor\n* cook\n* principal\n\nInput position: ");
+                scanf("%s", position);
+                addEmployee(FILENAME, id, firstname, lastname, age, position);
+                break;
+            }
+            case 2: {
+                // Get employee from database
+                printf("\nAvailable commands:\n");
+                printf("1. Lookup by name:\n");
+                printf("2. Lookup by ID:\n\n");
+                scanf("%d", &choice);
+                if (choice == 1) {
+                    printf("Enter first name: ");
+                    scanf("%s", firstname);
+                    printf("Enter last name: ");
+                    scanf("%s", lastname);
+                    searchName(FILENAME, firstname, lastname);
+                    break;
+                } else if (choice == 2) {
+                    printf("Enter ID: ");
+                    scanf("%d", &id);
+                    searchID(FILENAME, id);
+                    break;
+                }
+            }
+            case 3: {
+                // Get entire registry
+                getRegistry(FILENAME);
+                break;
+            }
+            case 4: {
+                // Get list of employees with specific position
+                printf("List of available positions:\n* teacher\n* teaching assistant (input 'ta')\n* athletic staff (input 'athletic')\n* nurse\n* janitor\n* cook\n* principal\nInput position: ");
+                scanf("%s", position);
+                getPosition(FILENAME, position);
+                break;
+            }
+            case 5: {
+                // Delete employee from database
+                printf("\nCAUTION: This will delete employee from database permanently\nEnter employee ID: ");
+                scanf("%d", &id);
+                removeEmployee(FILENAME, id);
+                break;
+            }
+            case 6: {
+                // Exit system
+                printf("\nExiting... \n");
+                return 0;
+            }
+            default: {
+                // Invalid choice
+                printf("\nInvalid choice.\n");
+                break;
+            }
+        }
+    }
     return 0;
 }
 
