@@ -4,7 +4,17 @@
 
 #define FILENAME "employees.csv"
 
-// Add employee to file 
+// Utility function to print employee information
+void printEmployee(int id, const char* firstname, const char* lastname, int age, const char* position) {
+    char fullName[32];
+    snprintf(fullName, sizeof(fullName), "%s %s", firstname, lastname);
+
+    printf("| %-3d | %-20s | %-3d | %-18s |\n", id, fullName, age, position);
+    printf("+-----+----------------------+-----+--------------------+\n");
+}
+
+
+// Check if employee ID exists
 int checkID(char* filename, int id) {
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
@@ -12,7 +22,6 @@ int checkID(char* filename, int id) {
         return -1;
     }
 
-    // TODO: get employee based on id (print)
     char line[100];
     int currid;
     int idFound = 0;
@@ -27,6 +36,8 @@ int checkID(char* filename, int id) {
     return idFound;
     fclose(file);
 }
+
+// Add employee to file
 void addEmployee(char* filename, int id, char *firstname, char *lastname, int age, char *position) {
     FILE *file = fopen(filename, "a");
     if (file == NULL) {
@@ -45,8 +56,6 @@ void removeEmployee(char* filename, int id) {
         printf("Error: Unable to open file!\n");
     }
 
-    // TODO: remove employee based on id (print)
-
     FILE *temp = fopen("temp.csv", "w");
     if (temp == NULL) {
         printf("Error: Unable to create temporary file!\n");
@@ -64,16 +73,13 @@ void removeEmployee(char* filename, int id) {
         } else idFound = 1;
     }
 
+    fclose(file);
+    fclose(temp);
+
     if (idFound == 0) {
         printf("Error: Employee ID not found!\n");
-        fclose(file);
-        fclose(temp);
         remove("temp.csv");
     } else {
-
-        fclose(file);
-        fclose(temp);
-
         remove(filename);
         rename("temp.csv", filename);
         printf("\nEmployee with ID %d removed successfully\n", id);
@@ -88,10 +94,8 @@ void searchID(char* filename, int id) {
         return;
     }
 
-    // TODO: get employee based on id (print)
     char line[100];
     int currid;
-    int idFound = 0;
     while (fgets(line, sizeof(line), file) != NULL) {
         sscanf(line, "%d", &currid);
         if (currid == id) {
@@ -100,13 +104,6 @@ void searchID(char* filename, int id) {
             char position[20];
             int age;
             sscanf(line, "%*d,%14[^,],%14[^,],%d,%19[^,\n]", firstname, lastname, &age, position);
-
-            // Combine first and last name
-            int length = strlen(firstname) + strlen(lastname) + 2;
-            char name[length];
-            strcpy(name, firstname);
-            strcat(name, " ");
-            strcat(name, lastname);
 
             // Expand teaching assistant and athletic staff abbreviations
             if (strcmp(position, "ta") == 0) 
@@ -117,18 +114,13 @@ void searchID(char* filename, int id) {
             printf("+-----+----------------------+-----+--------------------+\n");
             printf("| %-3s | %-20s | %-2s | %-18s |\n", "ID", "Name", "Age", "Position");
             printf("+-----+----------------------+-----+--------------------+\n");
-            printf("| %-3d | %-20s | %-3d | %-18s |\n", id, name, age, position);
-            printf("+-----+----------------------+-----+--------------------+\n");
-
-            idFound = 1;
-            break;
+            printEmployee(id, firstname, lastname, age, position);
+            fclose(file);
+            return;
         }
     }
 
-    if (!idFound) {
-        printf("Employee with ID %d not found.\n", id);
-    }
-
+    printf("Employee with ID %d not found.\n", id);
     fclose(file);
 }
 
@@ -140,7 +132,6 @@ void searchName(char* filename, char *firstname, char *lastname) {
         return;
     }
 
-    // TODO: get employee based on id (print)
     char line[100];
     int nameFound = 0;
     while (fgets(line, sizeof(line), file) != NULL) {
@@ -167,19 +158,14 @@ void searchName(char* filename, char *firstname, char *lastname) {
                 printf("+-----+----------------------+-----+--------------------+\n");
                 printf("| %-3s | %-20s | %-2s | %-18s |\n", "ID", "Name", "Age", "Position");
                 printf("+-----+----------------------+-----+--------------------+\n");
-                printf("| %-3d | %-20s | %-3d | %-18s |\n", id, name, age, position);
-                printf("+-----+----------------------+-----+--------------------+\n");
+                printEmployee(id, firstname, lastname, age, position);
                 printf("\nNOTE: Two or more employees may share the same name. Consider searching by ID to avoid incorrect employee.\n");
-
-                nameFound = 1;
-                break;
+                fclose(file);
+                return;
             }    
         }
 
-    if (!nameFound) {
-        printf("Employee with ID %s %s not found.\n", firstname, lastname);
-    }
-
+    printf("Employee with name %s %s not found.\n", firstname, lastname);
     fclose(file);
 }
 
@@ -190,9 +176,9 @@ void getPosition(char* filename, char *key) {
         printf("Error: Unable to open file!\n");
     }
 
-    // TODO: get list of employees based on key (print)
     printf("+-----+----------------------+-----+--------------------+\n");
     printf("| %-3s | %-20s | %-2s | %-18s |\n", "ID", "Name", "Age", "Position");
+    printf("+-----+----------------------+-----+--------------------+\n");
     char line[100];
     while (fgets(line, sizeof(line), file) != NULL) {
         char firstname[15];
@@ -214,11 +200,9 @@ void getPosition(char* filename, char *key) {
             else if (strcmp(position, "athletic") == 0)
                 strcpy(position, "athletic staff");
 
-            printf("+-----+----------------------+-----+--------------------+\n");
-            printf("| %-3d | %-20s | %-3d | %-18s |\n", id, name, age, position);
+            printEmployee(id, firstname, lastname, age, position);
         }
     }
-    printf("+-----+----------------------+-----+--------------------+\n");
     
     fclose(file);
 }
@@ -230,11 +214,11 @@ void getRegistry(char* filename) {
         printf("Error: Unable to open file!\n");
     }
 
-    // TODO: get list of employees (print)
     printf("+-------------------------------------------------------+\n");
     printf("| Employee registry:                                    |\n");
     printf("+-----+----------------------+-----+--------------------+\n");
     printf("| %-3s | %-20s | %-2s | %-18s |\n", "ID", "Name", "Age", "Position");
+    printf("+-----+----------------------+-----+--------------------+\n");
 
     char line[100];
     while (fgets(line, sizeof(line), file) != NULL) {
@@ -256,11 +240,9 @@ void getRegistry(char* filename) {
         else if (strcmp(position, "athletic") == 0)
             strcpy(position, "athletic staff");
 
-        printf("+-----+----------------------+-----+--------------------+\n");
-        printf("| %-3d | %-20s | %-3d | %-18s |\n", id, name, age, position);
+        printEmployee(id, firstname, lastname, age, position);
     }
-    printf("+-----+----------------------+-----+--------------------+\n");
-    
+
     fclose(file);
 }
 
